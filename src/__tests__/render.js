@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/extend-expect'
 import { Component, createRef, h } from 'preact'
-import Portal from 'preact-portal'
-import { render } from '..'
+import { createPortal, useEffect } from 'preact/compat'
+import { cleanup, render, screen } from '..'
 
 test('renders div into document', () => {
   const ref = createRef()
@@ -12,29 +12,18 @@ test('renders div into document', () => {
 })
 
 test('works great with preact portals', () => {
-  class MyPortal extends Component {
-    constructor (...args) {
-      super(...args)
+  function MyPortal () {
+    const portalNode = document.createElement('div')
+    portalNode.dataset.testid = 'my-portal'
 
-      this.portalNode = document.createElement('div')
-      this.portalNode.dataset.testid = 'my-portal'
-    }
+    useEffect(() => {
+      document.body.appendChild(portalNode)
+      return () => {
+        portalNode.parentNode.removeChild(portalNode)
+      }
+    }, [portalNode])
 
-    componentDidMount () {
-      document.body.appendChild(this.portalNode)
-    }
-
-    componentWillUnmount () {
-      this.portalNode.parentNode.removeChild(this.portalNode)
-    }
-
-    render () {
-      return (
-        <Portal into={this.portalNode}>
-          <Greet greeting="Hello" subject="World" />,
-        </Portal>
-      )
-    }
+    return createPortal(<Greet greeting="Hello" subject="World" />, portalNode)
   }
 
   function Greet ({ greeting, subject }) {
@@ -46,8 +35,7 @@ test('works great with preact portals', () => {
       </div>
     )
   }
-
-  const { unmount, getByTestId, getByText } = render(<MyPortal />)
+  const { getByText, getByTestId, unmount } = render(<MyPortal />)
   expect(getByText('Hello World')).toBeInTheDocument()
   const portalNode = getByTestId('my-portal')
   expect(portalNode).toBeInTheDocument()
