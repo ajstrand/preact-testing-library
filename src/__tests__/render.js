@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/extend-expect'
 import { Component, createRef, h } from 'preact'
 import { createPortal, useEffect } from 'preact/compat'
-import { cleanup, render, screen } from '..'
+import { render } from '..'
 
 test('renders div into document', () => {
   const ref = createRef()
